@@ -11,7 +11,7 @@ Pequeña web, alojada en Vercel, para que pymes rellenen el **Cuestionario Gesti
 
 ## Estado del proyecto
 
-Repositorio recién creado y vacío: no hay código todavía. Lo que sigue en "Stack" y "Estructura" es la **propuesta inicial**, no algo ya construido. Si cambia una decisión, actualiza este archivo.
+**Primera versión funcional construida** (formulario por pasos, enlaces únicos, guardado en Google Sheets, script de enlaces, tests unitarios y comprobación E2E en navegador con almacén local). **Aún no probado contra una hoja de Google real ni desplegado en Vercel**: falta crear la hoja, la service account y las variables de entorno (ver `README.md` y `.env.example`). Si cambia una decisión, actualiza este archivo.
 
 ## Idioma
 
@@ -25,14 +25,13 @@ Repositorio recién creado y vacío: no hay código todavía. Lo que sigue en "S
 - Accesible (WCAG 2.1 AA como mínimo): etiquetas asociadas, foco visible, navegación por teclado, contraste suficiente.
 - Hay datos personales (nombre y rol de la persona) y datos de empresa. Hace falta **aviso de privacidad y consentimiento (RGPD)** antes de enviar. No registrar datos personales en logs.
 
-## Stack propuesto
+## Stack
 
-- **Next.js (App Router) + TypeScript**, desplegado en Vercel.
-- Validación con **zod** (el mismo esquema en cliente y servidor).
-- Formulario con **react-hook-form**.
-- Estilos: Tailwind CSS.
-- Envío: Route Handler / Server Action de Next.js que valida y guarda.
-- Almacenamiento de respuestas: **Google Sheets** (decidido). Propuesta: API de Google Sheets con una *service account* (paquete `googleapis`), añadiendo una fila por envío (`spreadsheets.values.append`). Credenciales y ID de la hoja en variables de entorno de Vercel (`GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`, `GOOGLE_SHEET_ID`); la hoja se comparte con el email de la service account. **Nunca** commitear credenciales ni la clave privada.
+- **Next.js 16 (App Router) + TypeScript + Tailwind CSS 4**, desplegado en Vercel. Esta versión tiene `cacheComponents` y `partialPrefetching` activados: **lee `node_modules/next/dist/docs/` antes de tocar APIs de Next** (ver `AGENTS.md`). Consecuencia práctica: todo lo que dependa de la petición (`params`, lecturas a la hoja) va dentro de `<Suspense>` (ver `src/app/f/[token]/page.tsx`).
+- Validación **propia** y compartida cliente/servidor en `src/lib/validate.ts` (maneja visibilidad condicional y opciones "Otro"/excluyentes); no se usan zod ni react-hook-form.
+- Envío: Route Handler `POST /api/submit`, que valida token, consentimiento y respuestas en servidor y guarda.
+- Almacenamiento: **Google Sheets** vía API REST con una *service account* (`google-auth-library` + `fetch`; no `googleapis`, por tamaño). Una fila por envío (`values:append`). Variables de entorno de Vercel: `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`, `GOOGLE_SHEET_ID`; la hoja se comparte (Editor) con el email de la service account. **Nunca** commitear credenciales ni la clave privada.
+- Sin credenciales y fuera de producción se usa un **almacén local** (`.data/dev-store.json`, ignorado por git) con la misma interfaz (`src/lib/store/`). En producción sin credenciales la app falla a propósito.
 - Exportación: CSV. No se programa nada: se descarga desde Google Sheets (Archivo → Descargar → CSV). El formato de las columnas debe pensarse para que ese CSV sea directamente analizable.
 
 ### Enlaces únicos y una respuesta por empresa
@@ -44,8 +43,8 @@ El libro de Google Sheets tiene (al menos) dos pestañas:
 
 Reglas:
 
-- El enlace es `https://<dominio>/f/<token>` (o `/?t=<token>`). El token es **aleatorio e inadivinable** (≥ 128 bits, p. ej. 22 caracteres base64url generados con `crypto.randomBytes(16)`), nunca secuencial ni derivado del nombre de la empresa.
-- Hay que tener un **script** (`scripts/generate-links`) que, dada una lista de empresas, genere los tokens, rellene la pestaña `Empresas` y produzca un CSV `empresa, email, enlace` para preparar el envío de emails. No generar tokens a mano.
+- El enlace es `https://<dominio>/f/<token>`. El token es **aleatorio e inadivinable** (≥ 128 bits, p. ej. 22 caracteres base64url generados con `crypto.randomBytes(16)`), nunca secuencial ni derivado del nombre de la empresa.
+- El **script** `npm run links -- empresas.csv [enlaces.csv]` (`scripts/generate-links.ts`) lee un CSV `empresa,email`, genera los tokens, rellena la pestaña `Empresas` (y crea pestañas y cabeceras si faltan) y produce un CSV `empresa,email,enlace`. Es **idempotente**: una empresa que ya existe (mismo nombre, sin distinguir mayúsculas) conserva su token. No generar tokens a mano. Usa `APP_URL` para construir los enlaces. `empresas*.csv` y `enlaces*.csv` están en `.gitignore` (contienen datos de empresas y tokens).
 - **Al abrir el enlace**: el servidor busca el token en `Empresas`.
   - Token inexistente → pantalla "Enlace no válido, contacte con nosotros" (sin revelar nada más).
   - Token ya usado (`respondido_en` relleno) → pantalla "Ya hemos recibido su respuesta, gracias". No mostrar el formulario ni las respuestas anteriores.
@@ -63,25 +62,38 @@ Reglas:
 - Texto libre que empiece por `=`, `+`, `-` o `@` debe neutralizarse (prefijo `'`) para evitar inyección de fórmulas en Sheets/Excel al abrir el CSV.
 - Si cambia el cuestionario (nueva versión), **no reutilizar la misma pestaña**: crear una pestaña nueva por versión o añadir columnas al final, nunca reordenar las existentes.
 
-## Estructura prevista
+## Estructura
 
 ```
 src/
-  app/                  # rutas (formulario, página de gracias, privacidad)
-  components/           # componentes de formulario reutilizables
-  data/questionnaire.ts # ÚNICA fuente de verdad del cuestionario
-  lib/                  # esquema zod derivado, almacenamiento, utilidades
+  app/
+    page.tsx                 # portada ("use el enlace personal")
+    f/[token]/page.tsx       # puerta: token inválido / ya respondido / formulario
+    api/submit/route.ts      # POST: valida y guarda
+    privacidad/page.tsx      # BORRADOR con campos "[pendiente de completar]"
+  components/
+    Questionnaire.tsx        # flujo por pasos, autoguardado, envío
+    QuestionField.tsx        # un campo por tipo de pregunta
+    Messages.tsx, Card.tsx   # pantallas de estado y contenedores
+  data/questionnaire.ts      # ÚNICA fuente de verdad del cuestionario
+  lib/
+    validate.ts              # validación/sanitización/visibilidad (cliente + servidor)
+    columns.ts               # cabecera y fila de la hoja; neutralización de fórmulas
+    store/                   # interfaz + implementación Sheets + almacén local
+  config.ts                  # nombre del estudio, contacto (env NEXT_PUBLIC_*)
+scripts/generate-links.ts    # genera enlaces únicos
+tests/validate.test.ts       # tests unitarios (node:test)
 ```
 
 ## El cuestionario: reglas de modelado
 
-El cuestionario se define **como datos** en `src/data/questionnaire.ts` (secciones → preguntas → opciones). La UI y el esquema de validación se generan a partir de ahí. No hardcodear preguntas en componentes.
+El cuestionario se define **como datos** en `src/data/questionnaire.ts` (secciones → preguntas → opciones). La UI, la validación y la cabecera de la hoja se generan a partir de ahí. No hardcodear preguntas en componentes.
 
-Cada pregunta tiene: `id` estable, texto, tipo (`single` | `multi` | `text` | `textarea` | `number` | `scale`), opciones, si es obligatoria, y condiciones de visibilidad si las hay.
+Cada pregunta tiene: `id` estable, `pdfRef`, texto, tipo (`single` | `multi` | `text` | `textarea` | `number` | `scale`), opciones (con `exclusive` / `other`), `required` (por defecto `true`) y `showIf` si es condicional.
 
 ### Estructura (PDF v2)
 
-- **Datos generales**: Empresa, Persona entrevistada (nombre y rol), Fecha, Breve descripción de la actividad (texto libre); N1 nº de empleados, N2 grupo/cadena/franquicia, N3 puesto de la persona.
+- **Datos generales**: Empresa (precargada desde el token, no es una pregunta), Persona (nombre y cargo; en el PDF "Persona entrevistada (nombre y rol)"), Fecha (automática: `submitted_at`), Breve descripción de la actividad (texto libre, opcional); N1 nº de empleados, N2 grupo/cadena/franquicia, N3 puesto de la persona.
 - **Sección 1. Información básica del almacén**: 1–4, N4, N5.
 - **Sección 2. Problemas en la colocación de mercancía**: 5–8, N6–N11.
 - **Sección 3. Problemas en la recogida y acceso a los paquetes**: 9–14, N13, N14, N16–N19.
@@ -102,8 +114,10 @@ Cada pregunta tiene: `id` estable, texto, tipo (`single` | `multi` | `text` | `t
   - Las opciones excluyentes ("Ninguno", "Nada formal", "Ninguna", "No ocurre nunca") en preguntas multi-selección deben desmarcar el resto y viceversa.
   - Las descripciones "(Opcional: describa un caso reciente)" tras P7 y P11 son campos de texto opcionales.
 - **Tipos especiales**: P2 es numérico (m²); N25 es escala 1–5 (1 = nada satisfecho, 5 = muy satisfecho).
-- **Multi-selección** ("marque/seleccione todas las que apliquen"): P6, P8, P12, P14, N26 (y P9 según lectura; el PDF no lo indica explícitamente, confirmar). El resto son selección única.
-- Los textos de las opciones se copian **literalmente** del PDF (incluidas tildes y rangos con guion largo), salvo corrección explícita acordada.
+- **Multi-selección** ("marque/seleccione todas las que apliquen"): P6, P8, P12, P14, N26. El resto son selección única. **Dudosas** (el PDF no lo indica; hoy son selección única, marcadas `TODO(confirmar)` en `questionnaire.ts`): P1, P9, N16.
+- Los textos de las opciones se copian **literalmente** del PDF (incluidas tildes y rangos con guion largo). Únicas diferencias deliberadas: se quitan los marcadores "a)…f)" de P13 y los puntos finales, y se usa "Su nombre y cargo" para la persona que rellena.
+- Mejora de usabilidad respecto al PDF: "Describa un caso reciente" (tras P7 y P11) solo se muestra si la frecuencia no es "Nunca".
+- **Obligatoriedad**: todas las preguntas de elección/número son obligatorias salvo los textos libres opcionales; el usuario no avanza de paso con preguntas sin responder. Si baja la tasa de finalización, plantear relajarlo (`required: false` por pregunta en `questionnaire.ts`).
 
 ## Convenciones
 
@@ -111,12 +125,22 @@ Cada pregunta tiene: `id` estable, texto, tipo (`single` | `multi` | `text` | `t
 - Un cambio de pregunta u opción = cambio en `questionnaire.ts` y nada más; el esquema y la UI deben seguirlo solos.
 - Las respuestas guardadas deben incluir la **versión del cuestionario** (`"v2"`) y marca de tiempo, para poder comparar versiones futuras.
 - Validar siempre en servidor aunque ya se valide en cliente.
-- Proteger el endpoint de envío contra spam (honeypot y/o límite de peticiones) y limitar el tamaño de los campos de texto libre.
+- El endpoint de envío solo acepta tokens existentes y no usados (eso ya limita el spam), limita el tamaño del cuerpo (100 kB) y de cada texto libre, y nunca registra tokens ni respuestas en logs.
+- Antes de dar algo por hecho: `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`. Para cambios de UI, probar en el navegador (móvil y escritorio) con el almacén local.
 - Commits pequeños y descriptivos. No crear PRs salvo que se pida.
 
 ## Comandos
 
-Aún no existen (no hay `package.json`). Cuando se cree el proyecto, documentar aquí: instalar, `dev`, `build`, lint, tests.
+```bash
+npm install
+npm run dev                                   # http://localhost:3000 (almacén local si no hay credenciales)
+npm run build && npm start
+npm run lint && npm run typecheck
+npm test                                      # tests unitarios (node:test + tsx)
+npm run links -- empresas.csv enlaces.csv     # genera enlaces únicos (APP_URL=https://… para producción)
+```
+
+`next typegen` genera los tipos de rutas (`LayoutProps`, etc.); `npm run build` también los genera.
 
 ## Decisiones abiertas
 
@@ -124,9 +148,12 @@ Resueltas:
 - Respuestas → Google Sheets. Resultados → exportación manual a CSV (sin panel de administración). Lo rellena la pyme **sola**.
 - Identificación de la empresa → **enlace único por pyme con token**; **una sola respuesta por empresa**.
 - Valores corruptos del PDF (P3, P4, P10) → confirmados (ver gotchas).
+- Diseño: estilo académico/universitario sobrio (azul marino, titulares con serifa, acento dorado) y muy sencillo de rellenar (un paso por sección, controles grandes, autoguardado). **Sin logos ni marcas de ninguna universidad**: si se quiere usar un escudo/logo oficial (p. ej. de la UPM) hace falta autorización de la institución y sustituir el cuadro "GA" de `src/app/layout.tsx`.
 
 Pendientes:
-1. **¿P9 es multi-selección?** El PDF no lo indica. Mientras no se confirme, tratarla como selección única.
-2. **Adaptación de las etiquetas de "Datos generales"** al uso autónomo: "Persona entrevistada (nombre y rol)" → p. ej. "Persona que rellena el formulario (nombre y cargo)"; el campo "Fecha" puede rellenarse automáticamente. Confirmar.
-3. **Dominio y textos legales** (aviso de privacidad, responsable del tratamiento, a quién escribir para ejercer derechos RGPD).
-4. **¿Qué pasa tras enviar?** Mensaje de agradecimiento y, opcionalmente, invitar a dejar un email/teléfono si quieren la llamada.
+1. **¿P1, P9 y N16 admiten varias respuestas?** Hoy son selección única.
+2. **Textos legales**: aviso de privacidad (`src/app/privacidad/page.tsx` es un borrador marcado "pendiente de completar"), responsable del tratamiento, plazo de conservación, a quién escribir para ejercer derechos RGPD. Variables `NEXT_PUBLIC_ORG_NAME` y `NEXT_PUBLIC_CONTACT_EMAIL`.
+3. **Pantalla tras enviar**: hoy solo agradecimiento. ¿Invitar a dejar un teléfono para la llamada?
+4. **Despliegue**: crear la hoja de Google y la service account, configurar variables en Vercel, dominio. Probar un envío real contra la hoja antes de mandar emails (la integración con Sheets solo está probada con el almacén local).
+5. **Registrar `enviado_en`**: la columna existe en `Empresas` pero nada la rellena todavía (se puede rellenar a mano al mandar los emails, o ampliar el script).
+6. **Longitud (~44 preguntas, ~15 min)**: valorar una versión corta como camino principal para mejorar la tasa de respuesta.

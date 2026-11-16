@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+/*
+ * Estilo académico sobrio: azul marino institucional, titulares con serifa,
+ * mucho aire y controles grandes. Pensado para leerse bien en móvil.
+ * (No usa logos ni marcas de ninguna universidad.)
+ */
+@theme {
+  --color-navy: #0b2f5b;
+  --color-navy-dark: #072544;
+  --color-navy-soft: #e8eef6;
+  --color-gold: #b58a2e;
+  --color-paper: #f4f5f7;
+  --color-line: #c9d1db;
+  --color-ink: #1b2430;
+  --color-muted: #566272;
+  --color-danger: #a4262c;
+  --color-danger-soft: #fbeeee;
+  --color-ok: #1d6a3b;
+
+  --font-serif: Georgia, "Times New Roman", "Noto Serif", serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  font-size: 17px;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  line-height: 1.55;
+  -webkit-text-size-adjust: 100%;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif);
+  color: var(--color-navy-dark);
+  letter-spacing: -0.005em;
+}
+
+/* Foco bien visible para quien navega con teclado (en @layer base para poder sobrescribirlo). */
+@layer base {
+  :focus-visible {
+    outline: 3px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
