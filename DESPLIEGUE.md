@@ -67,6 +67,7 @@ La web escribe en la hoja con una "cuenta de servicio" (un usuario robot).
    | `NEXT_PUBLIC_CONTACT_EMAIL` | email de contacto (también para derechos RGPD) |
 
    Las variables `NEXT_PUBLIC_*` se incorporan al compilar: si las cambias, hay que **redesplegar**.
+   (`vercel.json` ya fija la región de las funciones en Fráncfort, cerca de España.)
 4. Pulsa **Deploy**. Al terminar tendrás una URL tipo `https://gest-innovacion.vercel.app`.
 5. (Opcional) **Settings → Domains** para usar un dominio propio.
 
