@@ -9,7 +9,8 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "links": "node --env-file-if-exists=.env.local --import tsx scripts/generate-links.ts",
-    "test": "node --import tsx --test tests/*.test.ts"
+    "test": "node --import tsx --test tests/*.test.ts",
+    "check:setup": "node --env-file-if-exists=.env.local --import tsx scripts/check-setup.ts"
   },
   "dependencies": {
     "google-auth-library": "^11.3.4",
@@ -27,5 +28,8 @@
     "tailwindcss": "4.3.3",
     "tsx": "^4.23.15",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

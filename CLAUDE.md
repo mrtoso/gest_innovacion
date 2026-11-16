@@ -11,7 +11,7 @@ Pequeña web, alojada en Vercel, para que pymes rellenen el **Cuestionario Gesti
 
 ## Estado del proyecto
 
-**Primera versión funcional construida** (formulario por pasos, enlaces únicos, guardado en Google Sheets, script de enlaces, tests unitarios y comprobación E2E en navegador con almacén local). **Aún no probado contra una hoja de Google real ni desplegado en Vercel**: falta crear la hoja, la service account y las variables de entorno (ver `README.md` y `.env.example`). Si cambia una decisión, actualiza este archivo.
+**Primera versión funcional construida** (formulario por pasos, enlaces únicos, guardado en Google Sheets, script de enlaces, tests unitarios y comprobación E2E en navegador con almacén local). **Aún no probado contra una hoja de Google real ni desplegado en Vercel**: falta crear la hoja, la service account y el proyecto en Vercel (ver `DESPLIEGUE.md`). Si cambia una decisión, actualiza este archivo.
 
 ## Idioma
 
@@ -138,6 +138,7 @@ npm run build && npm start
 npm run lint && npm run typecheck
 npm test                                      # tests unitarios (node:test + tsx)
 npm run links -- empresas.csv enlaces.csv     # genera enlaces únicos (APP_URL=https://… para producción)
+npm run check:setup                          # verifica la conexión con la hoja y crea pestañas/cabeceras
 ```
 
 `next typegen` genera los tipos de rutas (`LayoutProps`, etc.); `npm run build` también los genera.
@@ -154,6 +155,6 @@ Pendientes:
 1. **¿P1, P9 y N16 admiten varias respuestas?** Hoy son selección única.
 2. **Textos legales**: aviso de privacidad (`src/app/privacidad/page.tsx` es un borrador marcado "pendiente de completar"), responsable del tratamiento, plazo de conservación, a quién escribir para ejercer derechos RGPD. Variables `NEXT_PUBLIC_ORG_NAME` y `NEXT_PUBLIC_CONTACT_EMAIL`.
 3. **Pantalla tras enviar**: hoy solo agradecimiento. ¿Invitar a dejar un teléfono para la llamada?
-4. **Despliegue**: crear la hoja de Google y la service account, configurar variables en Vercel, dominio. Probar un envío real contra la hoja antes de mandar emails (la integración con Sheets solo está probada con el almacén local).
+4. **Despliegue**: la guía está en `DESPLIEGUE.md` y el script `check:setup` listo, pero **falta ejecutarlo**: crear la hoja, la service account y el proyecto en Vercel (cuentas del propietario). Hasta hacer la prueba real de `DESPLIEGUE.md` §5, la integración con Sheets solo está probada con el almacén local y no contra la API real.
 5. **Registrar `enviado_en`**: la columna existe en `Empresas` pero nada la rellena todavía (se puede rellenar a mano al mandar los emails, o ampliar el script).
 6. **Longitud (~44 preguntas, ~15 min)**: valorar una versión corta como camino principal para mejorar la tasa de respuesta.

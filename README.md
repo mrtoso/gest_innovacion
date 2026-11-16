@@ -25,6 +25,10 @@ Sin credenciales de Google, en desarrollo se usa un almacén local (`.data/dev-s
 
 3. `enlaces.csv` contiene `empresa,email,enlace` para preparar los emails.
 
+## Despliegue
+
+Guía completa (hoja de Google, cuenta de servicio, Vercel y prueba real): [`DESPLIEGUE.md`](./DESPLIEGUE.md).
+
 ## Configuración (Vercel / `.env.local`)
 
 Ver `.env.example`. En producción hacen falta `GOOGLE_SHEET_ID`, `GOOGLE_SERVICE_ACCOUNT_EMAIL` y
@@ -32,4 +36,4 @@ Ver `.env.example`. En producción hacen falta `GOOGLE_SHEET_ID`, `GOOGLE_SERVIC
 
 ## Scripts
 
-`npm run dev` · `npm run build` · `npm run lint` · `npm run typecheck` · `npm test` · `npm run links`
+`npm run dev` · `npm run build` · `npm run lint` · `npm run typecheck` · `npm test` · `npm run links` · `npm run check:setup`
