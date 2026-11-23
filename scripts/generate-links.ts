@@ -13,6 +13,7 @@
  *
  * Variables: APP_URL (por defecto http://localhost:3000) y las de Google (ver .env.example).
  */
+import { loadEnvLocal } from "./load-env";
 import { randomBytes } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { getStore } from "../src/lib/store/index";
@@ -53,6 +54,7 @@ function csvCell(value: string): string {
 }
 
 async function main() {
+  loadEnvLocal();
   const [input, output = "enlaces.csv"] = process.argv.slice(2);
   if (!input) {
     console.error("Uso: npm run links -- empresas.csv [enlaces.csv]");

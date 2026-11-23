@@ -8,9 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "links": "node --env-file-if-exists=.env.local --import tsx scripts/generate-links.ts",
+    "links": "node --import tsx scripts/generate-links.ts",
     "test": "node --import tsx --test tests/*.test.ts",
-    "check:setup": "node --env-file-if-exists=.env.local --import tsx scripts/check-setup.ts",
+    "check:setup": "node --import tsx scripts/check-setup.ts",
     "env:from-json": "node --import tsx scripts/env-from-json.ts"
   },
   "dependencies": {
@@ -31,6 +31,6 @@
     "typescript": "^5"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20.12"
   }
 }

@@ -10,6 +10,7 @@
  *   4. muestra cuántas empresas hay.
  * Nunca imprime la clave privada.
  */
+import { loadEnvLocal } from "./load-env";
 import { sheetsStore } from "../src/lib/store/sheets";
 
 const REQUIRED = ["GOOGLE_SHEET_ID", "GOOGLE_SERVICE_ACCOUNT_EMAIL", "GOOGLE_PRIVATE_KEY"] as const;
@@ -28,6 +29,7 @@ function hint(message: string): string {
 }
 
 async function main() {
+  loadEnvLocal();
   const missing = REQUIRED.filter((name) => !process.env[name]);
   if (missing.length > 0) {
     console.error(`Faltan variables: ${missing.join(", ")}`);
