@@ -45,3 +45,7 @@ next-env.d.ts
 /.data/
 /empresas*.csv
 /enlaces*.csv
+
+# claves de service account de Google Cloud (nunca al repositorio)
+/gest-innovacion-*.json
+/*service-account*.json
