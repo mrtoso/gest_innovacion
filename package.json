@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "links": "node --env-file-if-exists=.env.local --import tsx scripts/generate-links.ts",
     "test": "node --import tsx --test tests/*.test.ts",
-    "check:setup": "node --env-file-if-exists=.env.local --import tsx scripts/check-setup.ts"
+    "check:setup": "node --env-file-if-exists=.env.local --import tsx scripts/check-setup.ts",
+    "env:from-json": "node --import tsx scripts/env-from-json.ts"
   },
   "dependencies": {
     "google-auth-library": "^11.3.4",

@@ -138,6 +138,7 @@ npm run build && npm start
 npm run lint && npm run typecheck
 npm test                                      # tests unitarios (node:test + tsx)
 npm run links -- empresas.csv enlaces.csv     # genera enlaces únicos (APP_URL=https://… para producción)
+npm run env:from-json -- clave.json ID_HOJA     # crea .env.local desde el JSON de la service account
 npm run check:setup                          # verifica la conexión con la hoja y crea pestañas/cabeceras
 ```
 

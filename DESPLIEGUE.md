@@ -32,15 +32,15 @@ La web escribe en la hoja con una "cuenta de servicio" (un usuario robot).
 
 ## 3. Probar en local
 
-1. Crea `.env.local` copiando `.env.example` y rellena con el JSON descargado:
+1. Crea `.env.local` a partir del JSON descargado (la clave no sale de tu ordenador):
 
    ```bash
-   GOOGLE_SHEET_ID=el_id_de_la_hoja
-   GOOGLE_SERVICE_ACCOUNT_EMAIL=el_client_email_del_json
-   GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n…\n-----END PRIVATE KEY-----\n"
+   npm run env:from-json -- ruta/al/archivo.json ID_DE_LA_HOJA
    ```
 
-   Copia `private_key` tal cual aparece en el JSON (con los `\n`) y entre comillas dobles.
+   Escribe `GOOGLE_SHEET_ID`, `GOOGLE_SERVICE_ACCOUNT_EMAIL` y `GOOGLE_PRIVATE_KEY` en `.env.local`
+   (git lo ignora) y te recuerda el email con el que compartir la hoja. También puedes rellenarlo a
+   mano copiando `.env.example`; en ese caso, `private_key` va entre comillas dobles y con los `\n`.
 2. Comprueba la conexión y prepara la hoja:
 
    ```bash
